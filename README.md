@@ -63,7 +63,6 @@ Example
                 print("Transaction Not Successful!");
               },
               paymentChannel: ['card'],
-              metaData: {},
               customerName: 'Promise Amadi',
               callbackUrl: 'https://www.gmail.com',
             );
