@@ -46,11 +46,8 @@ class PayWithKora {
     /// What happens next after transaction is not completed
     required Function() transactionNotCompleted,
 
-    /// Extra data not consumed by Paystack but for developer purposes
-    Object? metaData,
-
     /// Payment Channels you want to make available to the user
-    Object? paymentChannel,
+    required Object paymentChannel,
   }) {
     return Navigator.push(
       context,
@@ -62,7 +59,6 @@ class PayWithKora {
           currency: currency,
           amount: amount,
           paymentChannel: paymentChannel,
-          metadata: metaData,
           transactionCompleted: transactionCompleted,
           transactionNotCompleted: transactionNotCompleted,
           callbackUrl: callbackUrl,

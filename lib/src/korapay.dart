@@ -15,8 +15,7 @@ class KoraPay extends StatefulWidget {
   final double amount;
   final String name;
   final String? narration;
-  final metadata;
-  final paymentChannel;
+  final Object paymentChannel;
   final void Function() transactionCompleted;
   final void Function() transactionNotCompleted;
 
@@ -30,10 +29,9 @@ class KoraPay extends StatefulWidget {
     required this.callbackUrl,
     required this.transactionCompleted,
     required this.transactionNotCompleted,
-    this.metadata,
     this.narration,
     required this.name,
-    this.paymentChannel,
+    required this.paymentChannel,
   });
 
   @override
@@ -65,7 +63,6 @@ class _KoraPayState extends State<KoraPay> {
           "amount": amount.toString(),
           "reference": widget.reference,
           "currency": widget.currency,
-          "metadata": widget.metadata,
           "narration": widget.narration,
           "redirect_url": widget.callbackUrl,
           "channels": widget.paymentChannel
