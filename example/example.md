@@ -58,16 +58,16 @@ final uniqueTransRef = PayWithKora().generateUuidV4();
                 customerEmail: "amadipromise07@gmail.com",
                 reference: uniqueTransRef,
                 currency: "NGN",
-                amount: 20000.00,
+                amount: 1000.00,
                 transactionCompleted: () {
                   print("Transaction Successful");
                 },
                 transactionNotCompleted: () {
                   print("Transaction Not Successful!");
                 },
-                paymentChannel: ['card'],
+                paymentChannel: ["card", "bank_transfer", "pay_with_bank"],
                 customerName: 'Promise Amadi',
-                callbackUrl: 'https://www.gmail.com');
+                callbackUrl: 'https://www.korahq.com');
           },
         ),
       ),

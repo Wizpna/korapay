@@ -1,3 +1,3 @@
-## 0.0.1
+## 0.0.3
 
-* Initial version.
+* - Fixed closing of korapay screen on Transaction Successful and Not Successful bug.

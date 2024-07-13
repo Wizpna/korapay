@@ -1,6 +1,6 @@
 name: korapay
 description: "This Flutter plugin allows users to make secure payments via bank transfer or card effortlessly. Simply use the secret key provided by Korapay to enable smooth and reliable transactions within your app."
-version: 0.0.2
+version: 0.0.3
 homepage: https://github.com/Wizpna/korapay
 
 environment:

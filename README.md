@@ -37,7 +37,7 @@ Update your minSDKVersion to 19
 
 ```yaml
 dependencies:
-  korapay: ^0.0.1
+  korapay: ^0.0.3
 ```
 
 ## Usage
@@ -55,16 +55,16 @@ Example
               customerEmail: "amadipromise07@gmail.com",
               reference: uniqueTransRef,
               currency: "NGN",
-              amount: 20000.00,
+              amount: 1000.00,
               transactionCompleted: () {
                 print("Transaction Successful");
               },
               transactionNotCompleted: () {
                 print("Transaction Not Successful!");
               },
-              paymentChannel: ['card', "mobile_money", "bank_transfer", "pay_with_bank"],
+              paymentChannel: ["card", "bank_transfer", "pay_with_bank"],
               customerName: 'Promise Amadi',
-              callbackUrl: 'https://www.gmail.com',
+              callbackUrl: 'https://www.korahq.com',
             );
 ```
 
@@ -95,7 +95,7 @@ Amount or value user/customer should be charged.
 URL to redirect to after payment is successful, this helps close the session. This is setup in the Dashboard of korapay and the same URL setup is then provided here by you again. **This is very important for successful or failed transactions**
 
 `paymentChannels`
-Payment Channels are provided to you by KoraPay and some may not be available based on your country and preferences set in your korapay dashboard. Example; `["card", "pay_with_bank", "bank_transfer", "mobile_money"]`
+Payment Channels are provided to you by KoraPay and some may not be available based on your country and preferences set in your korapay dashboard. Example; `["card", "pay_with_bank", "bank_transfer"]`
 
 `transactionCompleted`
 Execute a function when transaction is completed or is successful

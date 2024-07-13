@@ -45,6 +45,7 @@ class _KoraPayState extends State<KoraPay> {
     try {
       /// Sending Data to KoraPay.
       response = await http.post(
+
         /// Url to send data to
         Uri.parse('https://api.korapay.com/merchant/api/v1/charges/initialize'),
         headers: {
@@ -71,7 +72,7 @@ class _KoraPayState extends State<KoraPay> {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
         var snackBar =
-            SnackBar(content: Text("Fatal error occurred, ${e.toString()}"));
+        SnackBar(content: Text("Fatal error occurred, ${e.toString()}"));
         ScaffoldMessenger.of(context).showSnackBar(snackBar);
       }
     }
@@ -94,7 +95,9 @@ class _KoraPayState extends State<KoraPay> {
       barrierDismissible: false,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          backgroundColor: Theme
+              .of(context)
+              .scaffoldBackgroundColor,
           content: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.center,
@@ -102,7 +105,10 @@ class _KoraPayState extends State<KoraPay> {
               const CircularProgressIndicator.adaptive(),
               const SizedBox(width: 20),
               Text("Please wait...",
-                  style: Theme.of(context).textTheme.bodyMedium)
+                  style: Theme
+                      .of(context)
+                      .textTheme
+                      .bodyMedium)
             ],
           ),
         );
@@ -125,7 +131,7 @@ class _KoraPayState extends State<KoraPay> {
     } on Exception catch (_) {
       /// In the event of an exception, take the user back and show a SnackBar error.
       if (context.mounted) {
-        Navigator.pop(context);
+        // Navigator.pop(context);
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
         var snackBar = const SnackBar(
             content: Text("Fatal error occurred, Please check your internet"));
@@ -136,16 +142,13 @@ class _KoraPayState extends State<KoraPay> {
       var decodedRespBody = jsonDecode(response.body);
       if (decodedRespBody["data"]["status"] == "success") {
         widget.transactionCompleted();
-        Navigator.pop(context);
       } else {
         widget.transactionNotCompleted();
-        Navigator.pop(context);
       }
     } else {
       /// Anything else means there is an issue
       widget.transactionNotCompleted();
 
-      Navigator.pop(context);
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       var snackBar = SnackBar(content: Text(response.body.toString()));
       ScaffoldMessenger.of(context).showSnackBar(snackBar);
@@ -171,8 +174,10 @@ class _KoraPayState extends State<KoraPay> {
               ..setNavigationDelegate(
                 NavigationDelegate(
                   onNavigationRequest: (request) async {
-                    if (request.url.contains(widget.callbackUrl)) {
-                      await checkTransactionStatus(snapshot.data!.data!.reference.toString());
+                    if (request.url.startsWith(widget.callbackUrl))  {
+                      ///check transaction status before closing the view back to the previous screen
+                      checkTransactionStatus(snapshot.data!.data!.reference.toString());
+                      return NavigationDecision.prevent;
                     }
                     return NavigationDecision.navigate;
                   },
@@ -191,8 +196,9 @@ class _KoraPayState extends State<KoraPay> {
 
                     ///check transaction status before closing the view back to the previous screen
                     checkTransactionStatus(
-                            snapshot.data!.data!.reference.toString())
+                        snapshot.data!.data!.reference.toString())
                         .then((value) {
+                      Navigator.of(context).pop();
                       Navigator.of(context).pop();
                     });
                   },
@@ -213,8 +219,10 @@ class _KoraPayState extends State<KoraPay> {
             );
           }
 
-          return const Center(
-            child: CircularProgressIndicator(),
+          return const Material(
+            child: Center(
+              child: CircularProgressIndicator.adaptive(),
+            ),
           );
         },
       ),
@@ -245,7 +253,8 @@ class Data {
 
   Data({this.reference, this.checkoutUrl});
 
-  factory Data.fromJson(Map<String, dynamic> json) => Data(
+  factory Data.fromJson(Map<String, dynamic> json) =>
+      Data(
         reference: json["reference"],
         checkoutUrl: json["checkout_url"],
       );
