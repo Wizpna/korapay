@@ -105,8 +105,8 @@ Execute a function when transaction is not completed or is not successful
 
 ## Screenshots
 
-<img alt="" src="https://user-images.githubusercontent.com/26738997/192014501-035de07d-1130-49b6-895c-32c3182676cf.png" width= 300/> <img alt="" src="https://user-images.githubusercontent.com/26738997/192014543-82674864-2851-4b2b-9f92-be73aa370702.png" width= 300/>
-<img alt="" src="https://user-images.githubusercontent.com/26738997/192014596-0396ee68-febf-4bf9-8d74-30253c9c94fe.png" width= 300/> <img alt="" src="https://user-images.githubusercontent.com/26738997/192014634-a74376f8-7e96-4842-a133-58196f146b61.png" width= 300/>
+<img alt="" src="https://raw.githubusercontent.com/Wizpna/korapay/master/images/IMG_2921.PNG" width= 300/> <img alt="" src="https://raw.githubusercontent.com/Wizpna/korapay/master/images/IMG_2922.PNG" width= 300/>
+<img alt="" src="https://raw.githubusercontent.com/Wizpna/korapay/master/images/IMG_2923.PNG" width= 300/> <img alt="" src="https://raw.githubusercontent.com/Wizpna/korapay/master/images/IMG_2924.PNG" width= 300/>
 
 ## Additional information
 
