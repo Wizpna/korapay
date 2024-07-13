@@ -62,7 +62,7 @@ Example
               transactionNotCompleted: () {
                 print("Transaction Not Successful!");
               },
-              paymentChannel: ['card'],
+              paymentChannel: ['card', "mobile_money", "bank_transfer", "pay_with_bank"],
               customerName: 'Promise Amadi',
               callbackUrl: 'https://www.gmail.com',
             );
@@ -102,9 +102,6 @@ Execute a function when transaction is completed or is successful
 
 `transactionNotCompleted`
 Execute a function when transaction is not completed or is not successful
-
-`customerNarration [Optional]`
-Reason for payment
 
 ## Screenshots
 

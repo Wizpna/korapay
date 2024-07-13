@@ -34,9 +34,6 @@ class PayWithKora {
     /// Currency of the transaction
     required String currency,
 
-    /// reason for payment
-    String? customerNarration,
-
     /// Amount you want to charge the user
     required double amount,
 
@@ -63,7 +60,6 @@ class PayWithKora {
           transactionNotCompleted: transactionNotCompleted,
           callbackUrl: callbackUrl,
           name: customerName,
-          narration: customerNarration,
         ),
       ),
     );

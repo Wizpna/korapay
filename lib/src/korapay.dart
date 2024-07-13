@@ -14,7 +14,6 @@ class KoraPay extends StatefulWidget {
   final String email;
   final double amount;
   final String name;
-  final String? narration;
   final Object paymentChannel;
   final void Function() transactionCompleted;
   final void Function() transactionNotCompleted;
@@ -29,7 +28,6 @@ class KoraPay extends StatefulWidget {
     required this.callbackUrl,
     required this.transactionCompleted,
     required this.transactionNotCompleted,
-    this.narration,
     required this.name,
     required this.paymentChannel,
   });
@@ -63,7 +61,6 @@ class _KoraPayState extends State<KoraPay> {
           "amount": amount.toString(),
           "reference": widget.reference,
           "currency": widget.currency,
-          "narration": widget.narration,
           "redirect_url": widget.callbackUrl,
           "channels": widget.paymentChannel
         }),
@@ -139,8 +136,10 @@ class _KoraPayState extends State<KoraPay> {
       var decodedRespBody = jsonDecode(response.body);
       if (decodedRespBody["data"]["status"] == "success") {
         widget.transactionCompleted();
+        Navigator.pop(context);
       } else {
         widget.transactionNotCompleted();
+        Navigator.pop(context);
       }
     } else {
       /// Anything else means there is an issue
@@ -173,11 +172,7 @@ class _KoraPayState extends State<KoraPay> {
                 NavigationDelegate(
                   onNavigationRequest: (request) async {
                     if (request.url.contains(widget.callbackUrl)) {
-                      await checkTransactionStatus(
-                              snapshot.data!.data!.reference.toString())
-                          .then((value) {
-                        Navigator.of(context).pop();
-                      });
+                      await checkTransactionStatus(snapshot.data!.data!.reference.toString());
                     }
                     return NavigationDecision.navigate;
                   },
@@ -198,8 +193,6 @@ class _KoraPayState extends State<KoraPay> {
                     checkTransactionStatus(
                             snapshot.data!.data!.reference.toString())
                         .then((value) {
-                      Navigator.of(context).pop();
-                      Navigator.of(context).pop();
                       Navigator.of(context).pop();
                     });
                   },
