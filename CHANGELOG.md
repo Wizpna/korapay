@@ -1,3 +1,3 @@
-## 0.0.3
+## 0.0.4
 
-* - Fixed closing of korapay screen on Transaction Successful and Not Successful bug.
+* - Prevented transactionCompleted from being triggered multiple times during live payment redirects.

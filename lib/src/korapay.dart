@@ -15,8 +15,8 @@ class KoraPay extends StatefulWidget {
   final double amount;
   final String name;
   final Object paymentChannel;
-  final void Function() transactionCompleted;
-  final void Function() transactionNotCompleted;
+  final VoidCallback transactionCompleted;
+  final VoidCallback transactionNotCompleted;
 
   const KoraPay({
     super.key,
@@ -37,191 +37,139 @@ class KoraPay extends StatefulWidget {
 }
 
 class _KoraPayState extends State<KoraPay> {
-  /// Makes HTTP Request to KoraPay for access to make payment.
-  Future makePaymentRequest() async {
-    http.Response? response;
-    final amount = widget.amount;
+  late final Future<KoraPayResponse> _paymentFuture;
 
-    try {
-      /// Sending Data to KoraPay.
-      response = await http.post(
+  bool _transactionHandled = false;
 
-        /// Url to send data to
-        Uri.parse('https://api.korapay.com/merchant/api/v1/charges/initialize'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ${widget.secretKey}',
-        },
+  final Set<Factory<OneSequenceGestureRecognizer>> _gestureRecognizers = {
+    Factory(() => EagerGestureRecognizer()),
+  };
 
-        /// Data to send to the URL.
-        body: jsonEncode({
-          "customer": {
-            "name": widget.name,
-            "email": widget.email,
-          },
-          "amount": amount.toString(),
-          "reference": widget.reference,
-          "currency": widget.currency,
-          "redirect_url": widget.callbackUrl,
-          "channels": widget.paymentChannel
-        }),
-      );
-    } on Exception catch (e) {
-      /// In the event of an exception, take the user back and show a SnackBar error.
-      if (context.mounted) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        var snackBar =
-        SnackBar(content: Text("Fatal error occurred, ${e.toString()}"));
-        ScaffoldMessenger.of(context).showSnackBar(snackBar);
-      }
-    }
-
-    if (response!.statusCode == 200) {
-      return KoraPayResponse.fromJson(jsonDecode(response.body));
-    } else {
-      /// Anything else means there is an issue
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      var snackBar = SnackBar(content: Text(response.body.toString()));
-      ScaffoldMessenger.of(context).showSnackBar(snackBar);
-    }
+  @override
+  void initState() {
+    super.initState();
+    _paymentFuture = _makePaymentRequest();
   }
 
-  ///Display loading dialog
-  displayLoader() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return AlertDialog(
-          backgroundColor: Theme
-              .of(context)
-              .scaffoldBackgroundColor,
-          content: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const CircularProgressIndicator.adaptive(),
-              const SizedBox(width: 20),
-              Text("Please wait...",
-                  style: Theme
-                      .of(context)
-                      .textTheme
-                      .bodyMedium)
-            ],
-          ),
-        );
+  // ===================== PAYMENT INITIALIZATION =====================
+
+  Future<KoraPayResponse> _makePaymentRequest() async {
+    final response = await http.post(
+      Uri.parse('https://api.korapay.com/merchant/api/v1/charges/initialize'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ${widget.secretKey}',
       },
+      body: jsonEncode({
+        "customer": {
+          "name": widget.name,
+          "email": widget.email,
+        },
+        "amount": widget.amount.toString(),
+        "reference": widget.reference,
+        "currency": widget.currency,
+        "redirect_url": widget.callbackUrl,
+        "channels": widget.paymentChannel,
+      }),
     );
+
+    if (response.statusCode != 200) {
+      throw Exception(response.body);
+    }
+
+    return KoraPayResponse.fromJson(jsonDecode(response.body));
   }
 
-  /// Checks for transaction status of current transaction before view closes.
-  Future checkTransactionStatus(String ref) async {
-    http.Response? response;
+  // ===================== TRANSACTION VERIFICATION =====================
+
+  Future<void> _checkTransactionStatus(String ref) async {
+    if (_transactionHandled) return;
+    _transactionHandled = true;
+
     try {
-      /// Getting data, passing [ref] as a value to the URL that is being requested.
-      response = await http.get(
+      final response = await http.get(
         Uri.parse('https://api.korapay.com/merchant/api/v1/charges/$ref'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ${widget.secretKey}',
         },
       );
-    } on Exception catch (_) {
-      /// In the event of an exception, take the user back and show a SnackBar error.
-      if (context.mounted) {
-        // Navigator.pop(context);
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        var snackBar = const SnackBar(
-            content: Text("Fatal error occurred, Please check your internet"));
-        ScaffoldMessenger.of(context).showSnackBar(snackBar);
-      }
-    }
-    if (response!.statusCode == 200) {
-      var decodedRespBody = jsonDecode(response.body);
-      if (decodedRespBody["data"]["status"] == "success") {
-        widget.transactionCompleted();
+
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        final status = decoded["data"]["status"];
+
+        if (status == "success") {
+          widget.transactionCompleted();
+        } else {
+          widget.transactionNotCompleted();
+        }
       } else {
         widget.transactionNotCompleted();
       }
-    } else {
-      /// Anything else means there is an issue
+    } catch (_) {
+      _transactionHandled = false;
       widget.transactionNotCompleted();
-
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      var snackBar = SnackBar(content: Text(response.body.toString()));
-      ScaffoldMessenger.of(context).showSnackBar(snackBar);
     }
   }
 
-  final Set<Factory<OneSequenceGestureRecognizer>> gestureRecognizers = {
-    Factory(() => EagerGestureRecognizer())
-  };
+  // ===================== UI =====================
 
   @override
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
-      child: FutureBuilder(
-        future: makePaymentRequest(),
+      child: FutureBuilder<KoraPayResponse>(
+        future: _paymentFuture,
         builder: (context, snapshot) {
-          /// Show screen if snapshot has data and status is true.
-          if (snapshot.hasData && snapshot.data!.status == true) {
-            final controller = WebViewController()
-              ..setJavaScriptMode(JavaScriptMode.unrestricted)
-              ..setUserAgent("Flutter;Webview")
-              ..setNavigationDelegate(
-                NavigationDelegate(
-                  onNavigationRequest: (request) async {
-                    if (request.url.startsWith(widget.callbackUrl))  {
-                      ///check transaction status before closing the view back to the previous screen
-                      checkTransactionStatus(snapshot.data!.data!.reference.toString());
-                      return NavigationDecision.prevent;
-                    }
-                    return NavigationDecision.navigate;
-                  },
-                ),
-              )
-              ..loadRequest(
-                  Uri.parse(snapshot.data!.data!.checkoutUrl.toString()));
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator.adaptive()),
+            );
+          }
+
+          if (snapshot.hasError || snapshot.data?.status != true) {
             return Scaffold(
-              appBar: AppBar(
-                title: const Text("Kora Pay"),
-                centerTitle: true,
-                leading: IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () {
-                    displayLoader();
-
-                    ///check transaction status before closing the view back to the previous screen
-                    checkTransactionStatus(
-                        snapshot.data!.data!.reference.toString())
-                        .then((value) {
-                      Navigator.of(context).pop();
-                      Navigator.of(context).pop();
-                    });
-                  },
-                ),
-              ),
-              body: WebViewWidget(
-                controller: controller,
-                gestureRecognizers: gestureRecognizers,
+              body: Center(
+                child: Text(snapshot.error?.toString() ?? "Payment failed"),
               ),
             );
           }
 
-          if (snapshot.hasError) {
-            return Material(
-              child: Center(
-                child: Text('${snapshot.error}'),
+          final data = snapshot.data!.data!;
+          final controller = WebViewController()
+            ..setJavaScriptMode(JavaScriptMode.unrestricted)
+            ..setUserAgent("Flutter;WebView")
+            ..setNavigationDelegate(
+              NavigationDelegate(
+                onNavigationRequest: (request) {
+                  if (request.url.startsWith(widget.callbackUrl)) {
+                    _checkTransactionStatus(data.reference!);
+                    return NavigationDecision.prevent;
+                  }
+                  return NavigationDecision.navigate;
+                },
               ),
-            );
-          }
+            )
+            ..loadRequest(Uri.parse(data.checkoutUrl!));
 
-          return const Material(
-            child: Center(
-              child: CircularProgressIndicator.adaptive(),
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text("Kora Pay"),
+              centerTitle: true,
+              leading: IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () async {
+                  await _checkTransactionStatus(data.reference!);
+                  if (context.mounted) {
+                    Navigator.of(context).pop();
+                  }
+                },
+              ),
+            ),
+            body: WebViewWidget(
+              controller: controller,
+              gestureRecognizers: _gestureRecognizers,
             ),
           );
         },
@@ -230,32 +178,38 @@ class _KoraPayState extends State<KoraPay> {
   }
 }
 
+// ===================== MODELS =====================
+
 class KoraPayResponse {
   final bool? status;
   final String? message;
   final Data? data;
 
-  const KoraPayResponse(
-      {required this.status, required this.message, required this.data});
+  const KoraPayResponse({
+    required this.status,
+    required this.message,
+    required this.data,
+  });
 
   factory KoraPayResponse.fromJson(Map<String, dynamic> json) {
     return KoraPayResponse(
       status: json['status'],
-      message: json["message"],
-      data: json["data"] == null ? null : Data.fromJson(json["data"]),
+      message: json['message'],
+      data: json['data'] == null ? null : Data.fromJson(json['data']),
     );
   }
 }
 
 class Data {
-  String? reference;
-  String? checkoutUrl;
+  final String? reference;
+  final String? checkoutUrl;
 
   Data({this.reference, this.checkoutUrl});
 
-  factory Data.fromJson(Map<String, dynamic> json) =>
-      Data(
-        reference: json["reference"],
-        checkoutUrl: json["checkout_url"],
-      );
+  factory Data.fromJson(Map<String, dynamic> json) {
+    return Data(
+      reference: json['reference'],
+      checkoutUrl: json['checkout_url'],
+    );
+  }
 }
